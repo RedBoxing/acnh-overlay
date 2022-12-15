@@ -92,16 +92,19 @@ tsl::elm::Element *BuildingEditorLayout::createUI()
     setToPlayerBtn->setClickListener([this, buildingX, buildingY, buildingXItem, buildingYItem](u64 keys)
                                      {
             if (keys & HidNpadButton_A) {
-                building->x = 0;
-                building->y = 0;
-                buildingX->setProgress(building->x);
-                buildingY->setProgress(building->y);
+                Vector2* playerPos = Game::getPlayerPosition();
+                building->x = playerPos->x;
+                building->y = playerPos->y;
+                buildingX->setProgress(building->x * 0.1);
+                buildingY->setProgress(building->y * 0.1);
                 buildingXItem->setValue(std::to_string(building->x));
                 buildingYItem->setValue(std::to_string(building->y));
                 return true;
             }
 
             return false; });
+
+    list->addItem(setToPlayerBtn);
 
     list->addItem(new tsl::elm::CategoryHeader("Rotation", true));
 
@@ -123,6 +126,23 @@ tsl::elm::Element *BuildingEditorLayout::createUI()
             return false; });
 
     list->addItem(saveBtn);
+
+    auto deleteBtn = new tsl::elm::ListItem("Delete");
+    deleteBtn->setClickListener([this](u64 keys)
+                                {
+            if (keys & HidNpadButton_A) {
+                building->buildingType = Game::BuildingType::None;
+                building->x = 0;
+                building->y = 0;
+                building->angle = 0;
+                Game::setBuilding(*building, index);
+                tsl::goBack();
+                return true;
+            }
+
+            return false; });
+
+    list->addItem(deleteBtn);
 
     rootFrame->setContent(list);
     return rootFrame;

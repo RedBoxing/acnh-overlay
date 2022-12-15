@@ -11,11 +11,9 @@ tsl::elm::Element *SaveOptionsLayout::createUI()
 
   list->addItem(new tsl::elm::CategoryHeader("Dumping Options", true));
   list->addItem(new tsl::elm::ListItem("Dump Town main.dat", "..."));
-  list->addItem(new tsl::elm::ListItem("Dump Dream main.dat", "..."));
 
   list->addItem(new tsl::elm::CategoryHeader("Restore Options", true));
   list->addItem(new tsl::elm::ListItem("Restore Town main.dat", "..."));
-  list->addItem(new tsl::elm::ListItem("Restore Dream main.dat", "..."));
 
   list->addItem(new tsl::elm::CategoryHeader("Miscs Options", true));
   list->addItem(new tsl::elm::ListItem("Island Hemisphere", "North"));
@@ -41,6 +39,8 @@ tsl::elm::Element *SaveOptionsLayout::createUI()
     }
 
     return false; });
+
+  list->addItem(buildingBtn);
 
   for (int i = 0; i < buildings.size(); i++)
   {

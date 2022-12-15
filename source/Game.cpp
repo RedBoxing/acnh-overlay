@@ -1,16 +1,20 @@
 #include <Game.hpp>
 #include <Memory.hpp>
+#include <stdlib.h>
 
 uintptr_t Game::MainSave = 0x0;
 uintptr_t Game::PersonalSave = 0x0;
 uintptr_t Game::Inventory = 0x0;
 uintptr_t Game::EatEverythings = 0x0;
+uintptr_t Game::PlayerPosition = 0x0;
 
 void Game::Initialize()
 {
     //[[[[main+4C1AD20]+10]]+10]
     MainSave = Memory::FindDMAAddy(Memory::getBaseAddress() + 0x4C1AD20, {0x10, 0x0, 0x10, 0x0});
     PersonalSave = Memory::FindDMAAddy(Memory::getBaseAddress() + 0x4C1AD20, {0x10, 0x0, 0x28, 0x0});
+
+    PlayerPosition = Memory::FindDMAAddy(Memory::getBaseAddress() + 0x50CFDE8, {0x20, 0x08, 0x20, 0x10});
 
     //[[[main+3D96720]+190]+08]+C8
     // Inventory = Memory::getHeapAddress() + 0xAE19C778; //Memory::FindDMAAddy(Memory::getBaseAddress() + 0x3D96720, { 0x190, 0x08, 0xC8 });
@@ -112,4 +116,15 @@ const char *Game::buildingTypeToString(Game::BuildingType type)
     default:
         return "Unknown";
     }
+}
+
+Vector2 *Game::getPlayerPosition()
+{
+    Vector2 *position = (Vector2 *)malloc(sizeof(Vector2));
+    // Memory::readMemory(Game::PlayerPosition, position, sizeof(Vector2));
+
+    Memory::readMemory(Game::PlayerPosition, &position->x, 4);
+    Memory::readMemory(Game::PlayerPosition + 4, &position->y, 4);
+
+    return position;
 }

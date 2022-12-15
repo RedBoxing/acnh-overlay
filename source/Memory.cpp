@@ -1,7 +1,8 @@
 #include <Memory.hpp>
 #include <Utils.hpp>
 
-namespace Memory {
+namespace Memory
+{
     static dmntcht::CheatProcessMetadata m_metadata;
 
     Result attach() { return dmntcht::getCheatProcessMetadata(&m_metadata); }
@@ -14,7 +15,8 @@ namespace Memory {
     uintptr_t FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets)
     {
         uintptr_t addr = ptr;
-        for (unsigned int i = 0; i < offsets.size(); ++i) {
+        for (unsigned int i = 0; i < offsets.size(); ++i)
+        {
             readMemory(addr, &addr, sizeof(addr));
             addr += offsets[i];
         }

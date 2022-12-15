@@ -6,12 +6,23 @@
 #include <switch.h>
 #include <vector>
 
+#define ACNH_TITLE_ID 0x01006F8002326000
+
+#define VERSION_2_0_5 0x15765149DF53BA41
+
+struct Vector2
+{
+    int x;
+    int y;
+};
+
 namespace Game
 {
     extern uintptr_t MainSave;
     extern uintptr_t PersonalSave;
     extern uintptr_t Inventory;
     extern uintptr_t EatEverythings;
+    extern uintptr_t PlayerPosition;
 
     namespace Save
     {
@@ -85,10 +96,14 @@ namespace Game
     };
 
     void Initialize();
+
     std::vector<Building> getBuildings();
     Game::Building getBuilding(int index);
     void setBuilding(Game::Building building, int index);
+
     const char *buildingTypeToString(Game::BuildingType type);
+
+    Vector2 *getPlayerPosition();
 }
 
 #endif

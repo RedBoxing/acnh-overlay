@@ -40,7 +40,9 @@ tsl::elm::Element *DebugToolsLayout::createUI()
     Memory::readMemory(Game::PersonalSave, &buffer2, 16);
     Memory::readMemory(Game::PersonalSave + Game::Save::Personal::NowPoint, &nowpoint, sizeof(nowpoint));
 
-    rootFrame->setContent(new tsl::elm::CustomDrawer([itemId, airportColor, buffer, itemCount, nowpoint, buffer2](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h)
+    Vector2 *pos = Game::getPlayerPosition();
+
+    rootFrame->setContent(new tsl::elm::CustomDrawer([itemId, airportColor, buffer, itemCount, nowpoint, buffer2, pos](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h)
                                                      {
         renderer->drawString(("TitleID: 0x" + Utils::Hex2String(Memory::getTitleId())).c_str(), false, x, y + 20, 20, renderer->a(0xFFFF));
         renderer->drawString(("Main Address: 0x" + Utils::Hex2String(Memory::getBaseAddress())).c_str(), false, x, y + 45, 20, renderer->a(0xFFFF));
@@ -48,10 +50,10 @@ tsl::elm::Element *DebugToolsLayout::createUI()
         renderer->drawString(("Personal Save Addr: 0x" + Utils::Hex2String(Game::PersonalSave)).c_str(), false, x, y + 95, 20, renderer->a(0xFFFF));
         renderer->drawString(("Inventory Addr: 0x" + Utils::Hex2String(Game::Inventory)).c_str(), false, x, y + 120, 20, renderer->a(0xFFFF));
         renderer->drawString(("item: 0x" + Hex2String2(itemId) + " Count: " + std::to_string(itemCount)).c_str(), false, x, y + 145, 20, renderer->a(0xFFFF));
-        renderer->drawString(("Airport Color: " + Utils::Hex2String(airportColor)).c_str(), false, x, y + 170, 20, renderer->a(0xFFFF));
         renderer->drawString(("NowPoint: " + std::to_string(nowpoint)).c_str(), false, x, y + 195, 20, renderer->a(0xFFFF));
-        renderer->drawString(("Main.dat: " + Utils::Hex2String(buffer)).c_str(), false, x, y + 220, 20, renderer->a(0xFFFF));
-        renderer->drawString(("Personal.dat: " + Utils::Hex2String(buffer2)).c_str(), false, x, y + 245, 20, renderer->a(0xFFFF)); }));
+        renderer->drawString(("Personal.dat: " + Utils::Hex2String(buffer2)).c_str(), false, x, y + 220, 20, renderer->a(0xFFFF)); 
+        renderer->drawString(("X: " + std::to_string(pos->x)).c_str(), false, x, y + 245, 20, renderer->a(0xFFFF));
+        renderer->drawString(("Y: " + std::to_string(pos->y)).c_str(), false, x, y + 270, 20, renderer->a(0xFFFF)); }));
 
     return rootFrame;
 }
