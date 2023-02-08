@@ -8,7 +8,8 @@
 
 bool test2itemEnabled = false;
 
-u16 hexFromString(char* buffer) {
+u16 hexFromString(char *buffer)
+{
     std::stringstream ss;
     ss << buffer;
     u16 val;
@@ -17,37 +18,45 @@ u16 hexFromString(char* buffer) {
     return val;
 }
 
-tsl::elm::Element *InventoryOptionsLayout::createUI() {
-    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", "v1.0.0 - PRIVATE BETA");
+tsl::elm::Element *InventoryOptionsLayout::createUI()
+{
+    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", VERSION);
     auto list = new tsl::elm::List();
 
     auto text2item = new tsl::elm::ListItem("Inventory Editor");
-    text2item->setClickListener([](u64 keys) {
+    text2item->setClickListener([](u64 keys)
+                                {
         if(keys & HidNpadButton_A) {
             tsl::changeTo<InventoryEditorLayout>();
             return true;
         }
 
-        return false;
-    });
+        return false; });
 
     list->addItem(text2item);
 
-    auto test = new tsl::elm::ListItem("Give 2 Money Tree 1st slot");
-    test->setClickListener([](u64 keys) {
-        if (keys & HidNpadButton_A) {
-            u16 item = 0x114A;
-            u16 count = 2;
-            Memory::writeMemory(Game::Inventory, &item, sizeof(item));
-            Memory::writeMemory(Game::Inventory + 0x4, &count, sizeof(count));
-            return true;
-        }
+    std::map<u16, char *> items = {{0x08A4, "99k Bells"}, {0x16DB, "Nook Miles Ticket"}, {0x09C9, "Gold Nugget"}, {0x09CF, "Iron Nugget"}, {0x09C6, "Stone"}, {0x0ACF, "Softwood"}, {0x0AD0, "Wood"}, {0x0AD1, "Hardwood"}};
 
-        return false;
-    });
+    for (auto const &item : items)
+    {
+        auto test = new tsl::elm::ListItem(item.second);
+        test->setClickListener([item](u64 keys)
+                               {
+            if (keys & HidNpadButton_A)
+            {
+                int slot = Game::Inventory::findSlot(0xFFFE);
+                if (slot != -1)
+                {
+                    Game::Item item2 = {item.first, 0x20, 0x0, 0x80000};
+                    Game::Inventory::setItem(item2, slot);
+                }
+                return true;
+            }
 
-    list->addItem(test);
+            return false; });
 
+        list->addItem(test);
+    }
 
     rootFrame->setContent(list);
 

@@ -1,28 +1,25 @@
 #include <ui/MainApplication.hpp>
 #include <ui/views/MiscsOptionsLayout.hpp>
-#include <ui/views/EatItemEditor.hpp>
+#include "Game.hpp"
 
-tsl::elm::Element *MiscsOptionsLayout::createUI() {
-    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", "v1.0.0 - PRIVATE BETA");
+tsl::elm::Element *MiscsOptionsLayout::createUI()
+{
+    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", VERSION);
     auto list = new tsl::elm::List();
 
-    auto* eatEverythings = new tsl::elm::ToggleListItem("Eat Everythings", MainApplication::isEatEvertingsEnabled());
-    eatEverythings->setStateChangedListener([](bool state) {
-        MainApplication::toggleEatEverythings();
-    });
+    auto *eatEverythings = new tsl::elm::ToggleListItem("Eat Everythings", Game::Patches::eatEverythings->isEnabled());
+    eatEverythings->setStateChangedListener([](bool state)
+                                            { Game::Patches::eatEverythings->setEnabled(state); });
 
     list->addItem(eatEverythings);
 
-    auto* elm = new tsl::elm::ListItem("Select Eat Item", "...");
-    elm->setClickListener([elm](u64 keys) {
-        if (keys & HidNpadButton_A) {
-            tsl::changeTo<EatItemEditor>();
-            return true;
-        }
+#ifdef LIBRED
+    auto *onlineSeeder = new tsl::elm::ToggleListItem("Online Seeder", Game::Private::Patches::onlineSeeder->isEnabled());
+    onlineSeeder->setStateChangedListener([](bool state)
+                                          { Game::Private::Patches::onlineSeeder->setEnabled(state); });
 
-        return false;
-    });
-    list->addItem(elm);
+    list->addItem(onlineSeeder);
+#endif
 
     rootFrame->setContent(list);
 

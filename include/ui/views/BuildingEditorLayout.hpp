@@ -6,7 +6,7 @@
 class BuildingEditorLayout : public tsl::Gui
 {
 public:
-    BuildingEditorLayout(Game::Building *building, int index) : building(building), index(index)
+    BuildingEditorLayout(Game::Building *building, char *name, int index) : building(building), name(name), index(index)
     {
     }
 
@@ -14,5 +14,6 @@ public:
 
 private:
     Game::Building *building;
+    char *name;
     int index;
 };

@@ -42,11 +42,15 @@ APP_VERSION :=	1.0.0
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/ui source/ui/views source/dmnt
+SOURCES		:=	source source/ui source/ui/views source/dmnt $(or $(wildcard libs/libred/source),)
 DATA		:=	data
-INCLUDES	:=	include include/ui include/ui/views include/dmnt libs/libtesla/include
+INCLUDES	:=	include include/ui include/ui/views include/dmnt libs/libtesla/include $(or $(wildcard libs/libred/include),)
  
 NO_ICON		:=  1
+
+ifeq ($(wildcard libs/libred/.),)
+	DEFINES		:= -DLIBRED
+endif
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -163,7 +167,6 @@ endif
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
-
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@

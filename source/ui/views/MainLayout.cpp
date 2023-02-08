@@ -23,7 +23,7 @@ void addListItem(tsl::elm::List *list, const char *name)
 
 tsl::elm::Element *MainLayout::createUI()
 {
-    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", "v1.0.0 - PRIVATE BETA");
+    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", VERSION);
     auto list = new tsl::elm::List();
 
     addListItem<SaveOptionsLayout>(list, "Save Options");

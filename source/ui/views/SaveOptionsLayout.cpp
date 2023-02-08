@@ -3,38 +3,50 @@
 #include <ui/views/BuildingEditorLayout.hpp>
 #include <Memory.hpp>
 #include <algorithm>
+#include "Utils.hpp"
 
 tsl::elm::Element *SaveOptionsLayout::createUI()
 {
-  auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", "v1.0.0 - PRIVATE BETA");
+  auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", VERSION);
   auto list = new tsl::elm::List();
-
-  list->addItem(new tsl::elm::CategoryHeader("Dumping Options", true));
-  list->addItem(new tsl::elm::ListItem("Dump Town main.dat", "..."));
-
-  list->addItem(new tsl::elm::CategoryHeader("Restore Options", true));
-  list->addItem(new tsl::elm::ListItem("Restore Town main.dat", "..."));
 
   list->addItem(new tsl::elm::CategoryHeader("Miscs Options", true));
   list->addItem(new tsl::elm::ListItem("Island Hemisphere", "North"));
   list->addItem(new tsl::elm::ListItem("Change Name"));
 
+  auto test = new tsl::elm::ListItem("Test");
+  test->setClickListener([](u64 keys)
+                         {
+    if (keys & HidNpadButton_A) {
+      std::string str = "A";
+      str.resize(0x1AA, 'A');
+      for(int i = 0; i < str.size(); i++)
+      {
+        u16 utf16Char = str[i];
+        Memory::writeMemory(Game::Offsets::ChatBuffer + (i * 2), &utf16Char, sizeof(utf16Char));
+      }
+
+    return true;
+    }
+
+    return false; });
+
+  list->addItem(test);
+
   list->addItem(new tsl::elm::CategoryHeader("Buildings Editor", true));
 
-  std::vector<Game::Building> buildings = Game::getBuildings();
+  std::map<char *, Game::Building *> buildings = Game::getBuildings();
   auto buildingBtn = new tsl::elm::ListItem("Add Building", "...");
   buildingBtn->setClickListener([this, buildings](u64 keys)
                                 {
     if (keys & HidNpadButton_A)
     {
-      // find a free building slot in the buildings vector
-      int index = std::distance(buildings.begin(), std::find_if(buildings.begin(), buildings.end(), [](Game::Building building)
-                                                                { return building.buildingType == Game::BuildingType::None; }));
+      auto building = std::find_if(buildings.begin(), buildings.end(), [](std::pair<char *, Game::Building *> building) { return building.second->buildingType == Game::BuildingType::None; });
 
-      if (index == buildings.size())
+      if (building == buildings.end())
         return false;
 
-      tsl::changeTo<BuildingEditorLayout>(const_cast<Game::Building*>(&buildings.at(index)), index);
+      tsl::changeTo<BuildingEditorLayout>(building->second, building->first, std::distance(buildings.begin(), building));
       return true;
     }
 
@@ -42,19 +54,17 @@ tsl::elm::Element *SaveOptionsLayout::createUI()
 
   list->addItem(buildingBtn);
 
-  for (int i = 0; i < buildings.size(); i++)
+  for (std::map<char *, Game::Building *>::iterator it = buildings.begin(); it != buildings.end(); ++it)
   {
-    Game::Building building = buildings[i];
-    if (building.buildingType == Game::BuildingType::None)
+    Game::Building *building = it->second;
+    if (building->buildingType == Game::BuildingType::None)
       continue;
 
-    Game::BuildingType type = building.buildingType;
-    std::string name = Game::buildingTypeToString(type);
-    auto buildingBtn = new tsl::elm::ListItem(name.c_str(), ("X: " + std::to_string(building.x) + " Y: " + std::to_string(building.y)).c_str());
-    buildingBtn->setClickListener([this, building, i](u64 keys)
+    auto buildingBtn = new tsl::elm::ListItem(it->first, ("X: " + std::to_string(building->x) + " Y: " + std::to_string(building->y)).c_str());
+    buildingBtn->setClickListener([this, building, it](u64 keys)
                                   {
       if (keys & HidNpadButton_A) {
-        tsl::changeTo<BuildingEditorLayout>(const_cast<Game::Building*>(&building), i);
+        tsl::changeTo<BuildingEditorLayout>(building, it->first, 0);
         return true;
       }
 

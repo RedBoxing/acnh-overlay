@@ -15,7 +15,7 @@ public:
 
     tsl::elm::Element *createUI()
     {
-        auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", "v1.0.0 - PRIVATE BETA");
+        auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", VERSION);
         auto list = new tsl::elm::List();
 
         for (u16 i = 0; i < 30; i++)
@@ -47,11 +47,11 @@ private:
 
 tsl::elm::Element *BuildingEditorLayout::createUI()
 {
-    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", "v1.0.0 - PRIVATE BETA");
+    auto rootFrame = new tsl::elm::OverlayFrame("ACNH Overlay", VERSION);
     auto list = new tsl::elm::List();
 
-    list->addItem(new tsl::elm::CategoryHeader(("Building: " + std::to_string(index)), true));
-    buildingIdBtn = new tsl::elm::ListItem("Building Type: ", Game::buildingTypeToString(building->buildingType));
+    list->addItem(new tsl::elm::CategoryHeader("Building", true));
+    buildingIdBtn = new tsl::elm::ListItem("Building Type: ", name);
     buildingIdBtn->setClickListener([this](u64 keys)
                                     {
             if (keys & HidNpadButton_A) {
@@ -119,7 +119,7 @@ tsl::elm::Element *BuildingEditorLayout::createUI()
     saveBtn->setClickListener([this](u64 keys)
                               {
             if (keys & HidNpadButton_A) {
-                Game::setBuilding(*building, index);
+                Game::setBuilding(building, index);
                 return true;
             }
 
@@ -135,7 +135,7 @@ tsl::elm::Element *BuildingEditorLayout::createUI()
                 building->x = 0;
                 building->y = 0;
                 building->angle = 0;
-                Game::setBuilding(*building, index);
+                Game::setBuilding(building, index);
                 tsl::goBack();
                 return true;
             }
