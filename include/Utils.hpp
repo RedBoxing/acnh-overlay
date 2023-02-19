@@ -5,7 +5,8 @@
 
 namespace Utils
 {
-    bool str2u16(const char *str, u16 *out);
+    bool utf8ToUtf16(const char *str, u16 *out);
+    std::string utf16ToUtf8(u16 *str);
     std::string Hex2String(u64 hex);
-    std::string Hex2String(void *hex);
+    std::string Hex2String(void *hex, int length);
 }

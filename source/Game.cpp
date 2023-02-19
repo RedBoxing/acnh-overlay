@@ -8,8 +8,13 @@ uintptr_t Game::Offsets::Inventory = 0x0;
 uintptr_t Game::Offsets::PlayerPosition = 0x0;
 uintptr_t Game::Offsets::CameraPosition = 0x0;
 uintptr_t Game::Offsets::ChatBuffer = 0x0;
+uintptr_t Game::Offsets::CurrentTime = 0x0;
 
 Memory::Patch *Game::Patches::eatEverythings = 0x0;
+Memory::Patch *Game::Patches::freezeTime = 0x0;
+
+HiddbgHdlsHandle handle;
+HiddbgHdlsSessionId session_id;
 
 void Game::Initialize()
 {
@@ -23,8 +28,10 @@ void Game::Initialize()
     Offsets::Inventory = Memory::FindDMAAddy(Memory::getBaseAddress() + 0x4C1AD20, {0x1A0, 0x08, 0xC8});
     Offsets::CameraPosition = Memory::FindDMAAddy(Memory::getBaseAddress() + 0x4C71578, {0xF0, 0x70});
     Offsets::ChatBuffer = Memory::FindDMAAddy(Memory::getBaseAddress() + 0x4AA9CD8, {0x40});
+    Offsets::CurrentTime = Memory::getBaseAddress() + 0xBD3A18C;
 
-    Patches::eatEverythings = new Memory::Patch(Memory::getBaseAddress() + 0x1F08308, 0xD503201F, 0x4);
+    Patches::eatEverythings = new Memory::Patch(Memory::getBaseAddress() + 0x1F08308, Memory::Instructions::nop(), 0x4);
+    Patches::freezeTime = new Memory::Patch(Memory::getBaseAddress() + 0x328BD0, Memory::Instructions::nop(), 0x4);
 
     // bgm volume is at 0x1A02148
 
@@ -45,11 +52,23 @@ void Game::Initialize()
 
     Shops open 24 hours - 1B06370 52800020
     */
+
+    HiddbgHdlsDeviceInfo device = {0};
+
+    device.deviceType = HidDeviceType_FullKey15;
+    device.singleColorBody = RGBA8_MAXALPHA(255, 255, 255);
+    device.singleColorButtons = RGBA8_MAXALPHA(0, 0, 0);
+
+    hiddbgAttachHdlsWorkBuffer(&session_id);
+    hiddbgAttachHdlsVirtualDevice(&handle, &device);
 }
 
 void Game::Exit()
 {
-    Patches::eatEverythings->revert();
+    hiddbgDetachHdlsVirtualDevice(handle);
+    hiddbgReleaseHdlsWorkBuffer(session_id);
+
+    Patches::eatEverythings->setEnabled(false);
 
 #ifdef LIBRED
     Game::Private::Exit();
@@ -85,72 +104,71 @@ void Game::setBuilding(Game::Building *building, int index)
 
 const char *Game::buildingTypeToString(Game::BuildingType type)
 {
-    /*  switch (type)
-      {
-      case Game::BuildingType::None:
-          return "None";
-      case Game::BuildingType::PlayerHouse1:
-          return "Player House 1";
-      case Game::BuildingType::PlayerHouse2:
-          return "Player House 2";
-      case Game::BuildingType::PlayerHouse3:
-          return "Player House 3";
-      case Game::BuildingType::PlayerHouse4:
-          return "Player House 4";
-      case Game::BuildingType::PlayerHouse5:
-          return "Player House 5";
-      case Game::BuildingType::PlayerHouse6:
-          return "Player House 6";
-      case Game::BuildingType::PlayerHouse7:
-          return "Player House 7";
-      case Game::BuildingType::PlayerHouse8:
-          return "Player House 8";
-      case Game::BuildingType::Villager1:
-          return "Villager 1";
-      case Game::BuildingType::Villager2:
-          return "Villager 2";
-      case Game::BuildingType::Villager3:
-          return "Villager 3";
-      case Game::BuildingType::Villager4:
-          return "Villager 4";
-      case Game::BuildingType::Villager5:
-          return "Villager 5";
-      case Game::BuildingType::Villager6:
-          return "Villager 6";
-      case Game::BuildingType::Villager7:
-          return "Villager 7";
-      case Game::BuildingType::Villager8:
-          return "Villager 8";
-      case Game::BuildingType::Villager9:
-          return "Villager 9";
-      case Game::BuildingType::Villager10:
-          return "Villager 10";
-      case Game::BuildingType::NooksCranny:
-          return "Nook's Cranny";
-      case Game::BuildingType::ResidentCenterStructure:
-          return "Resident center structure";
-      case Game::BuildingType::Museum:
-          return "Museum";
-      case Game::BuildingType::Airport:
-          return "Airport";
-      case Game::BuildingType::ResidentCenterTent:
-          return "Resident center tent";
-      case Game::BuildingType::AblesSisters:
-          return "Ables' Sisters";
-      case Game::BuildingType::Campsite:
-          return "Campsite";
-      case Game::BuildingType::Bridge:
-          return "Bridge";
-      case Game::BuildingType::Incline:
-          return "Incline";
-      case Game::BuildingType::ReddsTreasureTrawler:
-          return "Redd's Treasure Trawler";
-      case Game::BuildingType::Studio:
-          return "Studio";
-      default:
-          return "Unknown";
-      }
-      */
+    switch (type)
+    {
+    case Game::BuildingType::None:
+        return "None";
+    case Game::BuildingType::PlayerHouse1:
+        return "Player House 1";
+    case Game::BuildingType::PlayerHouse2:
+        return "Player House 2";
+    case Game::BuildingType::PlayerHouse3:
+        return "Player House 3";
+    case Game::BuildingType::PlayerHouse4:
+        return "Player House 4";
+    case Game::BuildingType::PlayerHouse5:
+        return "Player House 5";
+    case Game::BuildingType::PlayerHouse6:
+        return "Player House 6";
+    case Game::BuildingType::PlayerHouse7:
+        return "Player House 7";
+    case Game::BuildingType::PlayerHouse8:
+        return "Player House 8";
+    case Game::BuildingType::Villager1:
+        return "Villager 1";
+    case Game::BuildingType::Villager2:
+        return "Villager 2";
+    case Game::BuildingType::Villager3:
+        return "Villager 3";
+    case Game::BuildingType::Villager4:
+        return "Villager 4";
+    case Game::BuildingType::Villager5:
+        return "Villager 5";
+    case Game::BuildingType::Villager6:
+        return "Villager 6";
+    case Game::BuildingType::Villager7:
+        return "Villager 7";
+    case Game::BuildingType::Villager8:
+        return "Villager 8";
+    case Game::BuildingType::Villager9:
+        return "Villager 9";
+    case Game::BuildingType::Villager10:
+        return "Villager 10";
+    case Game::BuildingType::NooksCranny:
+        return "Nook's Cranny";
+    case Game::BuildingType::ResidentCenterStructure:
+        return "Resident center structure";
+    case Game::BuildingType::Museum:
+        return "Museum";
+    case Game::BuildingType::Airport:
+        return "Airport";
+    case Game::BuildingType::ResidentCenterTent:
+        return "Resident center tent";
+    case Game::BuildingType::AblesSisters:
+        return "Ables' Sisters";
+    case Game::BuildingType::Campsite:
+        return "Campsite";
+    case Game::BuildingType::Bridge:
+        return "Bridge";
+    case Game::BuildingType::Incline:
+        return "Incline";
+    case Game::BuildingType::ReddsTreasureTrawler:
+        return "Redd's Treasure Trawler";
+    case Game::BuildingType::Studio:
+        return "Studio";
+    default:
+        return "Unknown";
+    }
 
     return "";
 }
@@ -177,6 +195,14 @@ int Game::Map::getTileIndex(int x, int y)
     return (Constants::Map::FieldItemHeight * x) + y;
 }
 
+Vector2 Game::Map::getTilePosition(int index)
+{
+    Vector2 position;
+    position.x = index / Constants::Map::FieldItemHeight;
+    position.y = index % Constants::Map::FieldItemHeight;
+    return position;
+}
+
 Game::Item Game::Map::getTile(Item *items, int x, int y)
 {
     return items[getTileIndex(x, y)];
@@ -191,7 +217,23 @@ Game::Item *Game::Map::getFieldItems()
 
 void Game::Map::writeTile(int index, Item item)
 {
-    Memory::writeMemory(Game::Offsets::MainSave + Game::Save::Main::FieldItem + (index * 0x8), &item, sizeof(Item));
+    Memory::writeMemory(Game::Offsets::MainSave + Game::Save::Main::FieldItem + (index * sizeof(Item)), &item, sizeof(Item));
+}
+
+Vector2 *Game::Map::getPlazaCordinates()
+{
+    Vector2 *position = (Vector2 *)malloc(sizeof(Vector2));
+    // Memory::readMemory(Game::Offsets::MainSave + Game::Save::Main::OutsideField + Game::Constants::Map::AcreSizeAll + 4, &position->x, 4);
+    // Memory::readMemory(Game::Offsets::MainSave + Game::Save::Main::OutsideField + Game::Constants::Map::AcreSizeAll + 8, &position->y, 4);
+    Memory::readMemory(Game::Offsets::MainSave + Game::Save::Main::OutsideField + Game::Constants::Map::AcreSizeAll + 4, position, 8);
+    return position;
+}
+
+void Game::Map::setPlazaCordinates(Vector2 *position)
+{
+    // Memory::writeMemory(Game::Offsets::MainSave + Game::Save::Main::OutsideField + Game::Constants::Map::AcreSizeAll + 4, (void *)position->x, 4);
+    // Memory::writeMemory(Game::Offsets::MainSave + Game::Save::Main::OutsideField + Game::Constants::Map::AcreSizeAll + 8, (void *)position->y, 4);
+    Memory::writeMemory(Game::Offsets::MainSave + Game::Save::Main::OutsideField + Game::Constants::Map::AcreSizeAll + 4, position, 8);
 }
 
 Game::Item *Game::Inventory::getItems()
@@ -225,4 +267,36 @@ int Game::Inventory::findSlot(u16 id)
     }
 
     return -1;
+}
+
+u8 Game::Time::getCurrentTime()
+{
+    u8 time;
+    Memory::readMemory(Game::Offsets::CurrentTime, &time, 1);
+    return time;
+}
+
+void Game::Time::incrementTime(u8 time)
+{
+    u8 value = getCurrentTime() + time;
+    Memory::writeMemory(Game::Offsets::CurrentTime, &value, 1);
+}
+
+void Game::Time::decrementTime(u8 time)
+{
+    u8 value = getCurrentTime() - time;
+    Memory::writeMemory(Game::Offsets::CurrentTime, &value, 1);
+}
+
+void Game::pressKey(u64 key)
+{
+    HiddbgHdlsState state = {0};
+    state.buttons = key;
+    hiddbgSetHdlsState(handle, &state);
+
+    // wait 0.1 seconds
+    svcSleepThread(100000000);
+
+    state.buttons = 0;
+    hiddbgSetHdlsState(handle, &state);
 }

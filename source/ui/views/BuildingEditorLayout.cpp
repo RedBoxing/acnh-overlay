@@ -70,9 +70,9 @@ tsl::elm::Element *BuildingEditorLayout::createUI()
 
     auto buildingX = new tsl::elm::TrackBar("\uE13C");
     // percentage
-    buildingX->setProgress(building->x * 0.1);
+    buildingX->setProgress(building->x * 0.4);
     buildingX->setValueChangedListener([this, buildingXItem](u8 value)
-                                       { building->x = value / 0.1;
+                                       { building->x = value / 0.4;
                                             buildingXItem->setValue(std::to_string(building->x)); });
 
     list->addItem(buildingX);
@@ -81,9 +81,9 @@ tsl::elm::Element *BuildingEditorLayout::createUI()
     list->addItem(buildingYItem);
 
     auto buildingY = new tsl::elm::TrackBar("\uE13C");
-    buildingY->setProgress(building->y * 0.1);
+    buildingY->setProgress(building->y * 0.4);
     buildingY->setValueChangedListener([this, buildingYItem](u8 value)
-                                       { building->y = value / 0.1;
+                                       { building->y = value / 0.4;
                                             buildingYItem->setValue(std::to_string(building->y)); });
 
     list->addItem(buildingY);

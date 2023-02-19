@@ -4,8 +4,8 @@
 #include <ui/views/ErrorLayout.hpp>
 #include <Utils.hpp>
 
-// static bool exitThread = false;
-//  static Thread t;
+static bool exitThread = false;
+static Thread t;
 
 std::unique_ptr<tsl::Gui> MainApplication::loadInitialGui()
 {
@@ -19,7 +19,7 @@ std::unique_ptr<tsl::Gui> MainApplication::loadInitialGui()
 
   return initially<MainLayout>();
 }
-/*
+
 static void checkButtons(void *)
 {
   PadState pad;
@@ -32,39 +32,51 @@ static void checkButtons(void *)
     padUpdate(&pad);
     kHeld = padGetButtons(&pad);
 
+    /* if (kHeld & HidNpadButton_Y)
+     {
+       Game::pressKey(HidNpadButton_X);
+       svcSleepThread(600'000'000);
+       Game::pressKey(HidNpadButton_A);
+       svcSleepThread(600'000'000);
+       Game::pressKey(HidNpadButton_A);
+     }*/
+
     svcSleepThread(100'000'000);
   }
-}*/
+}
 
 void MainApplication::initServices()
 {
   smInitialize();
   setInitialize();
   setsysInitialize();
+  setcalInitialize();
   splInitialize();
   fsInitialize();
   fsdevMountSdmc();
+  hiddbgInitialize();
   dmntcht::initialize();
   dmntcht::forceOpenCheatProcess();
 
-  // threadCreate(&t, checkButtons, NULL, NULL, 0x400, 0x3F, -2);
-  // threadStart(&t);
+  threadCreate(&t, checkButtons, NULL, NULL, 0x400, 0x3F, -2);
+  threadStart(&t);
 }
 
 void MainApplication::exitServices()
 {
   Game::Exit();
 
-  // exitThread = true;
-  // threadWaitForExit(&t);
-  // threadClose(&t);
-  // exitThread = false;
+  exitThread = true;
+  threadWaitForExit(&t);
+  threadClose(&t);
+  exitThread = false;
 
   dmntcht::forceCloseCheatProcess();
   dmntcht::exit();
   fsdevUnmountDevice("sdmc");
   fsExit();
   splExit();
+  setcalExit();
   setsysExit();
   setExit();
   smExit();

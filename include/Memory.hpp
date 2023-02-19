@@ -18,7 +18,20 @@ namespace Memory
     uintptr_t FindDMAAddy(uintptr_t ptr, std::vector<unsigned int> offsets);
     uintptr_t FindUnusedMemory(uintptr_t start, uintptr_t end, size_t size);
 
-    u32 makeMov(u8 _register, u16 value);
+    namespace Instructions
+    {
+        u32 mov(u8 reg, u16 value, bool is64Bit);
+        u32 movR(u8 dstReg, u8 srcReg, bool is64Bit);
+        u32 movk(u8 reg, u16 imm, u8 shift, bool is64Bit);
+        u32 movz(u8 reg, u16 imm, u8 shift, bool is64Bit);
+        u32 branch(u32 offset, bool link = false);
+        u32 branchR(u8 reg, bool link = false);
+        u32 ldr(u8 srcReg, u8 dstReg, u16 offset, bool is64Bit);
+        u32 addSp(u8 dst, u16 offset);
+        u32 add(u8 dst, u8 src, u16 offset, bool is64Bit);
+        u32 nop();
+        u32 ret();
+    };
 
     class Patch
     {

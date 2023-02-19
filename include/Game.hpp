@@ -14,8 +14,8 @@
 
 struct Vector2
 {
-    int x;
-    int y;
+    u32 x;
+    u32 y;
 };
 
 namespace Game
@@ -28,11 +28,13 @@ namespace Game
         extern uintptr_t PlayerPosition;
         extern uintptr_t CameraPosition;
         extern uintptr_t ChatBuffer;
+        extern uintptr_t CurrentTime;
     }
 
     namespace Patches
     {
         extern Memory::Patch *eatEverythings;
+        extern Memory::Patch *freezeTime;
     }
 
     struct Item
@@ -75,6 +77,7 @@ namespace Game
             const int AcreWidth = 7;
             const int AcreHeight = 6;
             const int AcreCount = AcreWidth * AcreHeight;
+            const int AcreSizeAll = ((7 + (2 * 1)) * (6 + (2 * 1))) * 2;
             const int TilesPerAcreDim = 32;
             const int FieldItemWidth = TilesPerAcreDim * AcreWidth;
             const int FieldItemHeight = TilesPerAcreDim * AcreHeight;
@@ -94,9 +97,12 @@ namespace Game
     namespace Map
     {
         int getTileIndex(int x, int y);
+        Vector2 getTilePosition(int index);
         Item getTile(Item *items, int x, int y);
         Item *getFieldItems();
         void writeTile(int index, Item item);
+        Vector2 *getPlazaCordinates();
+        void setPlazaCordinates(Vector2 *position);
     }
 
     namespace Inventory
@@ -105,6 +111,13 @@ namespace Game
         Item getItem(int index);
         void setItem(Item item, int index);
         int findSlot(u16 id);
+    }
+
+    namespace Time
+    {
+        u8 getCurrentTime();
+        void incrementTime(u8 time);
+        void decrementTime(u8 time);
     }
 
     enum class BuildingType : u16
@@ -173,6 +186,8 @@ namespace Game
 
     Vector2 *getPlayerPosition();
     CameraOffsets *getCameraPosition();
+
+    void pressKey(u64 key);
 }
 
 #endif
